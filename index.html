@@ -2,51 +2,31 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ByteCrawl - AI Word Arcade</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEXIBOMB | Kelime İmha Hattı</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-wrapper">
-        <div class="side-panel left">
-            <h2>BYTECRAWL</h2>
-            <div class="stat-box">
-                <span class="label">PUAN:</span>
-                <span id="score">0</span>
-            </div>
-            <div class="stat-box">
-                <span class="label">HEDEF KELİME:</span>
-                <span id="target-word">-----</span>
-            </div>
-            <div class="stat-box danger" id="timer-container">
-                <span class="label">SÜRE:</span>
-                <span id="timer">90</span>s
-            </div>
-            <div class="info-box">
-                <p id="hint">Oyunu başlatmak için bir yön tuşuna veya ekrandaki butonlara bas!</p>
+
+    <div class="game-container">
+        
+        <h1 class="game-title">LEXIBOMB</h1>
+
+        <div class="header">
+            <div class="score-board">Skor: <span id="score">0</span></div>
+            <div class="timer-box" id="timer-container">
+                <span id="bomb-emoji">💣</span> <span id="timer">45</span>s
             </div>
         </div>
 
-        <div class="canvas-container">
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
-        </div>
+        <div class="word-grid" id="grid"></div>
 
-        <div class="mobile-controls">
-            <button class="ctrl-btn up" id="btn-up">▲</button>
-            <div class="horizontal-btns">
-                <button class="ctrl-btn left-btn" id="btn-left">◀</button>
-                <div class="spacer"></div>
-                <button class="ctrl-btn right-btn" id="btn-right">▶</button>
-            </div>
-            <button class="ctrl-btn down" id="btn-down">▼</button>
-        }</div>
-
-        <div class="side-panel right">
-            <h3>ÇÖZÜLENLER</h3>
-            <ul id="solved-list">
-                </ul>
+        <div class="input-area">
+            <input type="text" id="word-input" maxlength="5" placeholder="5 harfli kelime yaz..." autocomplete="off">
+            <p id="message"></p>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
