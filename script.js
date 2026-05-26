@@ -1,15 +1,22 @@
-// GENİŞ TÜRKÇE 5 HARFLİ KELİME HAVUZU
+// 4, 5 VE 6 HARFLİ GENİŞLETİLMİŞ TÜRKÇE KELİME HAVUZU
 const words = [
-    "KALEM", "KİTAP", "MASA", "SABAH", "BOMBA", "KODLA", "SÜREK", "YAZIM", "GÜNEŞ", "DENİZ",
-    "AKŞAM", "ARABA", "BAHÇE", "BÜYÜK", "CÜMLE", "DOĞRU", "DÜNYA", "EMRAH", "ERKEN", "FARKLI",
-    "GEÇMİŞ", "GÜZEL", "HABER", "HAFTA", "IRMAK", "INSAN", "KABUL", "KAHVE", "LAZIM", "MEYVE",
-    "NOKTA", "ORMAN", "ÖRNEK", "PAZAR", "RESİM", "SABIR", "ŞARKI", "TARİH", "UYGUN", "VÜCUT",
-    "YAKIN", "ZAMAN", "GİZEM", "KÜÇÜK", "YALAN", "MANTIK", "SEVGİ", "SÖZLÜ", "DOLAR", "BİLİM"
+    // 4 Harfliler
+    "MASA", "KUTU", "ROTA", "ALTI", "SORU", "KURS", "GİZEM", "YAZI", "KALE", "OTEL", 
+    "SÜRE", "DOST", "MODA", "UMUT", "PLAN", "KRAL", "RÜYA", "ÜLKE", "ŞANS", "BANT",
+    // 5 Harfliler
+    "KALEM", "KİTAP", "SABAH", "BOMBA", "KODLA", "SÜREK", "YAZIM", "GÜNEŞ", "DENİZ",
+    "AKŞAM", "ARABA", "BAHÇE", "BÜYÜK", "CÜMLE", "DOĞRU", "DÜNYA", "EMRAH", "ERKEN",
+    "HABER", "HAFTA", "IRMAK", "INSAN", "KABUL", "KAHVE", "LAZIM", "MEYVE", "NOKTA",
+    "ORMAN", "ÖRNEK", "PAZAR", "RESİM", "SABIR", "ŞARKI", "TARİH", "UYGUN", "VÜCUT",
+    "YAKIN", "ZAMAN", "KÜÇÜK", "YALAN", "SEVGİ", "SÖZLÜ", "DOLAR", "BİLİM", "YARIN",
+    // 6 Harfliler
+    "MANTIK", "GEÇMİŞ", "TÜRKÇE", "YAZILM", "BOMBAZ", "SİSTEM", "KLAVYE", "EKRAN", 
+    "YAZICI", "BEYAZS", "VOLKAN", "ŞELALE", "SULTAN", "MİMARS", "DOKTOR", "KAFKAS"
 ];
 
 let targetWord = "";
 let score = 0;
-let timeLeft = 90; // Başlangıç süresi 90 saniye oldu
+let timeLeft = 90; 
 let timerInterval;
 
 const funnyMessages = [
@@ -55,25 +62,59 @@ function playExplosionSound() {
     osc.stop(ctx.currentTime + 1.5);
 }
 
+// KONFETİ PATLATMA FONKSİYONU 🎉
+function launchConfetti() {
+    const colors = ['#00ff66', '#ffcc00', '#ff0055', '#00e5ff', '#ff00ff'];
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.width = Math.random() * 8 + 5 + 'px';
+        confetti.style.height = Math.random() * 15 + 8 + 'px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-5vh';
+        confetti.style.borderRadius = '2px';
+        confetti.style.zIndex = '9999';
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        document.body.appendChild(confetti);
+
+        const animation = confetti.animate([
+            { transform: `translate3d(0, 0, 0) rotate(0deg)`, opacity: 1 },
+            { transform: `translate3d(${Math.random() * 100 - 50}px, 105vh, 0) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+        ], {
+            duration: Math.random() * 2000 + 1500,
+            easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+        });
+
+        animation.onfinish = () => confetti.remove();
+    }
+}
+
 function initGame() {
     targetWord = words[Math.floor(Math.random() * words.length)];
-    timeLeft = 90; // Yeni oyun başlangıcı 90 saniye
+    timeLeft = 90; 
     score = 0;
     scoreDisplay.innerText = score;
     wordInput.disabled = false;
     wordInput.value = "";
     
-    message.innerHTML = "Bomba aktif! Kelimeyi bul ve dünyayı kurtar!<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Kelimede var ama yanlış yer | ⚫ Gri: Kelimede yok</small>";
-    speak("Bomba aktif! Kelimeyi bul ve dünyayı kurtar!");
+    updatePlaceholder();
+    message.innerHTML = `Bomba aktif! Kelimeyi bul ve dünyayı kurtar!<br><b>İpucu: Kelime ${targetWord.length} harfli!</b><br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>`;
+    speak(`Bomba aktif! Aradığın kelime ${targetWord.length} harfli.`);
     
     createGrid();
     clearInterval(timerInterval);
     timerInterval = setInterval(updateTimer, 1000);
 }
 
+function updatePlaceholder() {
+    wordInput.setAttribute("placeholder", `${targetWord.length} harfli kelime yaz...`);
+}
+
 function createGrid() {
     grid.innerHTML = "";
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < targetWord.length; i++) {
         let box = document.createElement("div");
         box.classList.add("letter-box");
         box.id = "box-" + i;
@@ -84,7 +125,7 @@ function createGrid() {
 function updateTimer() {
     timeLeft--;
     timerDisplay.innerText = timeLeft;
-    if (timeLeft <= 15) { // Son 15 saniyede tehlike alarmı çalsın
+    if (timeLeft <= 15) { 
         timerContainer.classList.add("danger");
     } else {
         timerContainer.classList.remove("danger");
@@ -97,10 +138,10 @@ function updateTimer() {
 
 wordInput.addEventListener("keyup", (e) => {
     if (e.key === "Enter") {
-        let guess = wordInput.value.toUpperCase();
-        if (guess.length !== 5) {
-            message.innerText = "Hey! Kelime dediğin 5 harfli olur.";
-            speak("Kelime 5 harfli olmalı");
+        let guess = wordInput.value.toLocaleUpperCase('tr-TR');
+        if (guess.length !== targetWord.length) {
+            message.innerText = `Hey! Aradığımız kelime tam ${targetWord.length} harfli.`;
+            speak(`Kelime ${targetWord.length} harfli olmalı`);
             return;
         }
         checkGuess(guess);
@@ -110,7 +151,7 @@ wordInput.addEventListener("keyup", (e) => {
 
 function checkGuess(guess) {
     let correctCount = 0;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < targetWord.length; i++) {
         let box = document.getElementById("box-" + i);
         let letter = guess[i];
         box.innerText = letter;
@@ -125,23 +166,27 @@ function checkGuess(guess) {
         }
     }
 
-    if (correctCount === 5) {
+    if (correctCount === targetWord.length) {
         score += 100;
-        timeLeft += 20; // Doğru bilince +20 saniye ödül
+        timeLeft += 20; 
         scoreDisplay.innerText = score;
         message.innerText = "BOOMsuz Günler! Bombayı çözdün. Yeni kelimeye geçiliyor...";
         speak("Harika, bombayı çözdün!");
+        
+        launchConfetti(); // 🎉 Konfeti burada patlıyor
+        
         setTimeout(() => {
             targetWord = words[Math.floor(Math.random() * words.length)];
+            updatePlaceholder();
             createGrid();
-            message.innerHTML = "Bomba aktif!<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>";
+            message.innerHTML = `Bomba aktif!<br><b>İpucu: Kelime ${targetWord.length} harfli!</b><br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>`;
         }, 1500);
     } else {
-        timeLeft -= 3; // Yanlış bilince sadece 3 saniye ceza
+        timeLeft -= 3; 
         timerDisplay.innerText = timeLeft;
         let randomJoke = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
         
-        message.innerHTML = `${randomJoke}<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small> `;
+        message.innerHTML = `${randomJoke}<br><b>İpucu: Kelime ${targetWord.length} harfli!</b><br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small> `;
         speak(randomJoke);
         
         grid.classList.add("shake");
