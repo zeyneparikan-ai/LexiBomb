@@ -1,0 +1,157 @@
+/* Genel Sayfa Ayarları (Cyberpunk / Karanlık Tema) */
+body {
+    background-color: #0f0f12;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.game-container {
+    background: #1a1a24;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    text-align: center;
+    width: 350px;
+}
+
+/* LEXIBOMB NEON BAŞLIK STİLİ */
+.game-title {
+    font-size: 2.5rem;
+    color: #00ffff; /* Neon Turkuaz/Mavi */
+    text-shadow: 0 0 7px #00ffff, 0 0 15px #00ffff, 0 0 21px #00ffff;
+    letter-spacing: 6px;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-weight: 900;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Üst Panel: Skor ve Sayaç */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* SÜRE TEHLİKEDEYKEN (Son 10 sn) KIPKIRMIZI YANIP SÖNME EFEKTİ */
+.timer-box.danger {
+    color: #ff3333;
+    animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); text-shadow: 0 0 5px #ff3333; }
+    to { transform: scale(1.1); text-shadow: 0 0 15px #ff3333; }
+}
+
+/* Kelime Kutucuklarının Izgarası */
+.word-grid {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+/* Boş Harf Kutuları */
+.letter-box {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #3a3a4f;
+    border-radius: 8px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+/* YANLIŞ TAHMİNDE TÜM GRID'İN SALLANMA EFEKTİ */
+.word-grid.shake {
+    animation: shake 0.4s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+/* DOĞRU HARF, DOĞRU YER (Neon Yeşil) */
+.letter-box.correct {
+    background-color: #00ff66;
+    color: #000;
+    border-color: #00ff66;
+    box-shadow: 0 0 15px #00ff66;
+}
+
+/* HARF VAR AMA YERİ YANLIŞ (Neon Sarı/Turuncu) */
+.letter-box.present {
+    background-color: #ffcc00;
+    color: #000;
+    border-color: #ffcc00;
+    box-shadow: 0 0 15px #ffcc00;
+}
+
+/* HARF KELİMEDE YOK (Koyu/Sönük Gri) */
+.letter-box.absent {
+    background-color: #3a3a4f;
+    color: #777;
+    border-color: #3a3a4f;
+}
+
+/* Giriş Alanı (Input) */
+#word-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #3a3a4f;
+    border-radius: 8px;
+    background-color: #0f0f12;
+    color: white;
+    font-size: 1.1rem;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+    letter-spacing: 2px;
+}
+
+#word-input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+#message {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #aaa;
+    min-height: 50px;
+}
+
+/* Yeniden Başla Butonu */
+button {
+    background-color: #ff3333;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button:hover {
+    background-color: #ff0000;
+    box-shadow: 0 0 10px #ff0000;
+}
