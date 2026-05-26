@@ -9,7 +9,7 @@ const words = [
 
 let targetWord = "";
 let score = 0;
-let timeLeft = 45;
+let timeLeft = 90; // Başlangıç süresi 90 saniye oldu
 let timerInterval;
 
 const funnyMessages = [
@@ -57,13 +57,12 @@ function playExplosionSound() {
 
 function initGame() {
     targetWord = words[Math.floor(Math.random() * words.length)];
-    timeLeft = 45;
+    timeLeft = 90; // Yeni oyun başlangıcı 90 saniye
     score = 0;
     scoreDisplay.innerText = score;
     wordInput.disabled = false;
     wordInput.value = "";
     
-    // BAŞLANGIÇTA RENK KILAVUZUNU EKRANA YAZIYORUZ
     message.innerHTML = "Bomba aktif! Kelimeyi bul ve dünyayı kurtar!<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Kelimede var ama yanlış yer | ⚫ Gri: Kelimede yok</small>";
     speak("Bomba aktif! Kelimeyi bul ve dünyayı kurtar!");
     
@@ -85,7 +84,7 @@ function createGrid() {
 function updateTimer() {
     timeLeft--;
     timerDisplay.innerText = timeLeft;
-    if (timeLeft <= 10) {
+    if (timeLeft <= 15) { // Son 15 saniyede tehlike alarmı çalsın
         timerContainer.classList.add("danger");
     } else {
         timerContainer.classList.remove("danger");
@@ -128,7 +127,7 @@ function checkGuess(guess) {
 
     if (correctCount === 5) {
         score += 100;
-        timeLeft += 15;
+        timeLeft += 20; // Doğru bilince +20 saniye ödül
         scoreDisplay.innerText = score;
         message.innerText = "BOOMsuz Günler! Bombayı çözdün. Yeni kelimeye geçiliyor...";
         speak("Harika, bombayı çözdün!");
@@ -138,11 +137,10 @@ function checkGuess(guess) {
             message.innerHTML = "Bomba aktif!<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>";
         }, 1500);
     } else {
-        timeLeft -= 5;
+        timeLeft -= 3; // Yanlış bilince sadece 3 saniye ceza
         timerDisplay.innerText = timeLeft;
         let randomJoke = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
         
-        // HATA YAPINCA RENK KILAVUZUNU ALTTA TUTMAYA DEVAM EDİYORUZ
         message.innerHTML = `${randomJoke}<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small> `;
         speak(randomJoke);
         
@@ -155,14 +153,10 @@ function gameOver() {
     wordInput.disabled = true;
     playExplosionSound();
     
-    // OYUN BİTTİĞİNDE DOĞRU KELİMEYİ EKRANDA GÖSTERİYORUZ
     message.innerHTML = `BOOM! 💥 Havaya uçtun! <br> <b>Doğru Kelime: ${targetWord}</b> <br> Skorun: ${score} <br> <button onclick="initGame()">Yeniden Başla</button>`;
-    
-    // DOĞRU KELİMEYİ SESLİ SÖYLÜYORUZ
     speak(`Güm! Bomba patladı, havaya uçtun! Doğru kelime, ${targetWord} idi.`);
 }
 
-// İlk açılışta boş kutuları çiziyoruz
 createGrid();
 message.innerText = "Oyunu başlatmak için ekranda BOŞ BİR YERE TIKLA!";
 
