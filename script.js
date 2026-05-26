@@ -62,8 +62,11 @@ function initGame() {
     scoreDisplay.innerText = score;
     wordInput.disabled = false;
     wordInput.value = "";
-    message.innerText = "Bomba aktif! Kelimeyi bul ve dünyayı kurtar!";
+    
+    // BAŞLANGIÇTA RENK KILAVUZUNU EKRANA YAZIYORUZ
+    message.innerHTML = "Bomba aktif! Kelimeyi bul ve dünyayı kurtar!<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Kelimede var ama yanlış yer | ⚫ Gri: Kelimede yok</small>";
     speak("Bomba aktif! Kelimeyi bul ve dünyayı kurtar!");
+    
     createGrid();
     clearInterval(timerInterval);
     timerInterval = setInterval(updateTimer, 1000);
@@ -132,14 +135,17 @@ function checkGuess(guess) {
         setTimeout(() => {
             targetWord = words[Math.floor(Math.random() * words.length)];
             createGrid();
-            message.innerText = "";
+            message.innerHTML = "Bomba aktif!<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>";
         }, 1500);
     } else {
         timeLeft -= 5;
         timerDisplay.innerText = timeLeft;
         let randomJoke = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
-        message.innerText = randomJoke;
+        
+        // HATA YAPINCA RENK KILAVUZUNU ALTTA TUTMAYA DEVAM EDİYORUZ
+        message.innerHTML = `${randomJoke}<br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small> `;
         speak(randomJoke);
+        
         grid.classList.add("shake");
         setTimeout(() => grid.classList.remove("shake"), 500);
     }
@@ -148,15 +154,18 @@ function checkGuess(guess) {
 function gameOver() {
     wordInput.disabled = true;
     playExplosionSound();
-    message.innerHTML = `BOOM! 💥 Havaya uçtun! <br> Skorun: ${score} <br> <button onclick="initGame()">Yeniden Başla</button>`;
-    speak("Güm! Bomba patladı, havaya uçtun!");
+    
+    // OYUN BİTTİĞİNDE DOĞRU KELİMEYİ EKRANDA GÖSTERİYORUZ
+    message.innerHTML = `BOOM! 💥 Havaya uçtun! <br> <b>Doğru Kelime: ${targetWord}</b> <br> Skorun: ${score} <br> <button onclick="initGame()">Yeniden Başla</button>`;
+    
+    // DOĞRU KELİMEYİ SESLİ SÖYLÜYORUZ
+    speak(`Güm! Bomba patladı, havaya uçtun! Doğru kelime, ${targetWord} idi.`);
 }
 
 // İlk açılışta boş kutuları çiziyoruz
 createGrid();
 message.innerText = "Oyunu başlatmak için ekranda BOŞ BİR YERE TIKLA!";
 
-// Kullanıcı ekrana ilk tıkladığında oyun ve ses motoru güvenli bir şekilde çalışacak
 window.addEventListener("click", () => {
     if (targetWord === "") {
         initGame();
