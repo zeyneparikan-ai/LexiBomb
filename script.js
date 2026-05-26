@@ -1,212 +1,335 @@
-// 4, 5 VE 6 HARFLİ GENİŞLETİLMİŞ TÜRKÇE KELİME HAVUZU
-const words = [
-    // 4 Harfliler
-    "MASA", "KUTU", "ROTA", "ALTI", "SORU", "KURS", "GİZEM", "YAZI", "KALE", "OTEL", 
-    "SÜRE", "DOST", "MODA", "UMUT", "PLAN", "KRAL", "RÜYA", "ÜLKE", "ŞANS", "BANT",
-    // 5 Harfliler
-    "KALEM", "KİTAP", "SABAH", "BOMBA", "KODLA", "SÜREK", "YAZIM", "GÜNEŞ", "DENİZ",
-    "AKŞAM", "ARABA", "BAHÇE", "BÜYÜK", "CÜMLE", "DOĞRU", "DÜNYA", "EMRAH", "ERKEN",
-    "HABER", "HAFTA", "IRMAK", "INSAN", "KABUL", "KAHVE", "LAZIM", "MEYVE", "NOKTA",
-    "ORMAN", "ÖRNEK", "PAZAR", "RESİM", "SABIR", "ŞARKI", "TARİH", "UYGUN", "VÜCUT",
-    "YAKIN", "ZAMAN", "KÜÇÜK", "YALAN", "SEVGİ", "SÖZLÜ", "DOLAR", "BİLİM", "YARIN",
-    // 6 Harfliler
-    "MANTIK", "GEÇMİŞ", "TÜRKÇE", "YAZILM", "BOMBAZ", "SİSTEM", "KLAVYE", "EKRAN", 
-    "YAZICI", "BEYAZS", "VOLKAN", "ŞELALE", "SULTAN", "MİMARS", "DOKTOR", "KAFKAS"
-];
+// =========================================================================
+//  PROJE ADI: BYTECRAWL (AI WORD ARCADE)
+//  DEVELOPER: Zeynep Arıkan
+//  TEKNOLOJİLER: HTML5 Canvas, Saf JavaScript (Vanilla JS), Asenkron AI Mimari
+// =========================================================================
 
-let targetWord = "";
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// OYUN ALANI MATRİS AYARLARIM
+const gridSize = 20;
+const tileCount = canvas.width / gridSize;
+
+// =========================================================================
+// 🧠 KENDİ YAZDIĞIM YAPAY ZEKA (AI) MOTORU ENTEGRASYONU
+// Oyuncunun performansını anlık izleyen ve dinamik içerik üreten AI Servisi
+// =========================================================================
+class ByteCrawlAIEngine {
+    async generateDynamicWord(playerScore) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        let difficulty = playerScore < 300 ? "Kolay" : playerScore < 600 ? "Orta" : "Uzman";
+        
+        const aiDatabase = {
+            "Kolay": [
+                { word: "MASA", hint: "AI Bilmecesi: Üzerinde yemek yenen veya ders çalışılan 4 harfli nesne." },
+                { word: "KUTU", hint: "AI Bilmecesi: Genelde kartondan yapılan, içine eşya sakladığımız şey." },
+                { word: "KALE", hint: "AI Bilmecesi: Hem satrançta düz giden bir taş, hem de eski savunma yapısı." }
+            ],
+            "Orta": [
+                { word: "GÜNEŞ", hint: "AI Bilmecesi: Sabahları doğan, dünyayı ısıtan devasa gök cismi." },
+                { word: "DENİZ", hint: "AI Bilmecesi: Yazın yüzmeye gittiğimiz devasa, tuzlu su kütlesi." },
+                { word: "KİTAP", hint: "AI Bilmecesi: Sayfaları olan, okudukça bizi bilge yapan dost." }
+            ],
+            "Uzman": [
+                { word: "MANTIK", hint: "AI Bilmecesi: Yazılımcıların kod yazarken kullandığı doğru düşünme disiplini." },
+                { word: "GEÇMİŞ", hint: "AI Bilmecesi: Arkada bıraktığımız, anılarda kalan eski zaman dilimi." },
+                { word: "KLAVYE", hint: "AI Bilmecesi: Şu an yılanı yönlendirmek için tuşlarına bastığın siber donanım." }
+            ]
+        };
+
+        const currentOptions = aiDatabase[difficulty];
+        return currentOptions[Math.floor(Math.random() * currentOptions.length)];
+    }
+}
+
+const aiEngine = new ByteCrawlAIEngine();
+// =========================================================================
+
+// OYUN İÇİ DEĞİŞKENLERİM
+let snake = [];
+let dir = { x: 0, y: 0 };
+let nextDir = { x: 0, y: 0 };
 let score = 0;
-let timeLeft = 90; 
+let timeLeft = 90;
+let gameInterval;
 let timerInterval;
 
-const funnyMessages = [
-    "Patlamaya hazır mısın şampiyon? Bu o kelime değil!",
-    "Bomba tıkır tıkır sayıyor, sen hala fantezi peşindesin...",
-    "Klavyene kedi mi bastı? Kelime yanlış!",
-    "Yanlış! Kabloyu yanlış kestin, süre gitti!",
-    "Einstein bile şu an terliyor, biraz daha odaklan!",
-    "Kelime dağarcığın bu kadar mı? Başka kelime dene!",
-    "İmha ekibi şokta! Lütfen rastgele sallama."
-];
+let currentTarget = null; 
+let collectedLetters = "";
+let boardItems = []; 
+let gameStarted = false;
 
-const grid = document.getElementById("grid");
-const wordInput = document.getElementById("word-input");
-const timerDisplay = document.getElementById("timer");
-const scoreDisplay = document.getElementById("score");
-const message = document.getElementById("message");
-const timerContainer = document.getElementById("timer-container");
+// ⚡ HIZ AYARI: 130'dan 240'a çıkararak yılanı sakinleştirdik (Büyük sayı = Daha yavaş yılan)
+let baseSpeed = 240; 
+let aiThinking = false; 
 
 function speak(text) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         let utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'tr-TR';
-        utterance.rate = 1.2;
+        utterance.rate = 1.3;
         window.speechSynthesis.speak(utterance);
     }
 }
 
-function playExplosionSound() {
-    if (!window.AudioContext) return;
-    let ctx = new AudioContext();
-    let osc = ctx.createOscillator();
-    let gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(300, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 1.5);
-    gain.gain.setValueAtTime(0.5, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 1.5);
+async function fetchNextAIWord() {
+    aiThinking = true;
+    document.getElementById("target-word").innerText = "AI DÜŞÜNÜYOR...";
+    document.getElementById("hint").innerText = "ByteCrawl AI motoru oyuncu skoruna göre kelime üretiyor...";
+    
+    const aiResponse = await aiEngine.generateDynamicWord(score);
+    
+    currentTarget = aiResponse;
+    collectedLetters = "";
+    aiThinking = false;
+
+    document.getElementById("target-word").innerText = currentTarget.word;
+    document.getElementById("hint").innerText = currentTarget.hint;
+    speak(`Yapay zeka kelimeyi belirledi. ${currentTarget.hint}`);
+    
+    generateBoardItems();
 }
 
-// KONFETİ PATLATMA FONKSİYONU 🎉
+function generateBoardItems() {
+    if (!currentTarget) return;
+    boardItems = [];
+    
+    let nextLetter = currentTarget.word[collectedLetters.length];
+    boardItems.push({ x: randPos(), y: randPos(), type: "letter", value: nextLetter, correct: true });
+
+    for (let i = 0; i < 3; i++) {
+        let fakeLetter = String.fromCharCode(65 + Math.floor(Math.random() * 24));
+        if (fakeLetter !== nextLetter) {
+            boardItems.push({ x: randPos(), y: randPos(), type: "letter", value: fakeLetter, correct: false });
+        }
+    }
+
+    let mineCount = 2 + Math.floor(score / 300);
+    for (let i = 0; i < mineCount; i++) {
+        boardItems.push({ x: randPos(), y: randPos(), type: "mine" });
+    }
+
+    if (Math.random() < 0.4) {
+        boardItems.push({ x: randPos(), y: randPos(), type: "bonus" });
+    }
+}
+
+function randPos() {
+    return Math.floor(Math.random() * tileCount);
+}
+
 function launchConfetti() {
     const colors = ['#00ff66', '#ffcc00', '#ff0055', '#00e5ff', '#ff00ff'];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 40; i++) {
         const confetti = document.createElement('div');
         confetti.style.position = 'fixed';
-        confetti.style.width = Math.random() * 8 + 5 + 'px';
-        confetti.style.height = Math.random() * 15 + 8 + 'px';
+        confetti.style.width = Math.random() * 6 + 4 + 'px';
+        confetti.style.height = Math.random() * 12 + 6 + 'px';
         confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
         confetti.style.left = Math.random() * 100 + 'vw';
         confetti.style.top = '-5vh';
-        confetti.style.borderRadius = '2px';
         confetti.style.zIndex = '9999';
-        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-        
         document.body.appendChild(confetti);
 
-        const animation = confetti.animate([
-            { transform: `translate3d(0, 0, 0) rotate(0deg)`, opacity: 1 },
-            { transform: `translate3d(${Math.random() * 100 - 50}px, 105vh, 0) rotate(${Math.random() * 720}deg)`, opacity: 0 }
-        ], {
-            duration: Math.random() * 2000 + 1500,
-            easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
-        });
-
-        animation.onfinish = () => confetti.remove();
+        const anim = confetti.animate([
+            { transform: 'translate3d(0,0,0) rotate(0deg)', opacity: 1 },
+            { transform: `translate3d(${Math.random() * 80 - 40}px, 105vh, 0) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+        ], { duration: Math.random() * 1000 + 1500 });
+        anim.onfinish = () => confetti.remove();
     }
 }
 
-function initGame() {
-    targetWord = words[Math.floor(Math.random() * words.length)];
-    timeLeft = 90; 
+function startGame() {
+    snake = [{ x: 10, y: 10 }];
+    dir = { x: 0, y: 0 };
+    nextDir = { x: 0, y: 0 };
     score = 0;
-    scoreDisplay.innerText = score;
-    wordInput.disabled = false;
-    wordInput.value = "";
+    timeLeft = 90;
+    document.getElementById("score").innerText = score;
+    document.getElementById("solved-list").innerHTML = "";
+    gameStarted = false;
+
+    fetchNextAIWord(); 
     
-    updatePlaceholder();
-    message.innerHTML = `Bomba aktif! Kelimeyi bul ve dünyayı kurtar!<br><b>İpucu: Kelime ${targetWord.length} harfli!</b><br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>`;
-    speak(`Bomba aktif! Aradığın kelime ${targetWord.length} harfli.`);
-    
-    createGrid();
+    clearInterval(gameInterval);
     clearInterval(timerInterval);
+    gameInterval = setInterval(gameLoop, baseSpeed);
     timerInterval = setInterval(updateTimer, 1000);
 }
 
-function updatePlaceholder() {
-    wordInput.setAttribute("placeholder", `${targetWord.length} harfli kelime yaz...`);
-}
+window.addEventListener("keydown", e => {
+    if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+    if (aiThinking) return; 
+    
+    if (!gameStarted) gameStarted = true;
 
-function createGrid() {
-    grid.innerHTML = "";
-    for (let i = 0; i < targetWord.length; i++) {
-        let box = document.createElement("div");
-        box.classList.add("letter-box");
-        box.id = "box-" + i;
-        grid.appendChild(box);
-    }
-}
-
-function updateTimer() {
-    timeLeft--;
-    timerDisplay.innerText = timeLeft;
-    if (timeLeft <= 15) { 
-        timerContainer.classList.add("danger");
-    } else {
-        timerContainer.classList.remove("danger");
-    }
-    if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        gameOver();
-    }
-}
-
-wordInput.addEventListener("keyup", (e) => {
-    if (e.key === "Enter") {
-        let guess = wordInput.value.toLocaleUpperCase('tr-TR');
-        if (guess.length !== targetWord.length) {
-            message.innerText = `Hey! Aradığımız kelime tam ${targetWord.length} harfli.`;
-            speak(`Kelime ${targetWord.length} harfli olmalı`);
-            return;
-        }
-        checkGuess(guess);
-        wordInput.value = "";
+    switch (e.key) {
+        case "ArrowUp": if (dir.y === 0) nextDir = { x: 0, y: -1 }; break;
+        case "ArrowDown": if (dir.y === 0) nextDir = { x: 0, y: 1 }; break;
+        case "ArrowLeft": if (dir.x === 0) nextDir = { x: -1, y: 0 }; break;
+        case "ArrowRight": if (dir.x === 0) nextDir = { x: 1, y: 0 }; break;
     }
 });
 
-function checkGuess(guess) {
-    let correctCount = 0;
-    for (let i = 0; i < targetWord.length; i++) {
-        let box = document.getElementById("box-" + i);
-        let letter = guess[i];
-        box.innerText = letter;
+function gameLoop() {
+    if (!gameStarted || aiThinking) {
+        draw();
+        return;
+    }
 
-        if (targetWord[i] === letter) {
-            box.className = "letter-box correct";
-            correctCount++;
-        } else if (targetWord.includes(letter)) {
-            box.className = "letter-box present";
-        } else {
-            box.className = "letter-box absent";
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        gameOver("Duvara çarptın! Yapay zekaya karşı kaybettin.");
+        return;
+    }
+
+    for (let cell of snake) {
+        if (head.x === cell.x && head.y === cell.y) {
+            gameOver("Kendi kuyruğunu ısırdın!");
+            return;
         }
     }
 
-    if (correctCount === targetWord.length) {
-        score += 100;
-        timeLeft += 20; 
-        scoreDisplay.innerText = score;
-        message.innerText = "BOOMsuz Günler! Bombayı çözdün. Yeni kelimeye geçiliyor...";
-        speak("Harika, bombayı çözdün!");
-        
-        launchConfetti(); // 🎉 Konfeti burada patlıyor
-        
-        setTimeout(() => {
-            targetWord = words[Math.floor(Math.random() * words.length)];
-            updatePlaceholder();
-            createGrid();
-            message.innerHTML = `Bomba aktif!<br><b>İpucu: Kelime ${targetWord.length} harfli!</b><br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small>`;
-        }, 1500);
+    snake.unshift(head);
+    let ateSomething = false;
+
+    for (let i = boardItems.length - 1; i >= 0; i--) {
+        let item = boardItems[i];
+        if (head.x === item.x && head.y === item.y) {
+            ateSomething = true;
+            
+            if (item.type === "mine") {
+                gameOver("Yapay zekanın mayınına bastın! 💥");
+                return;
+            } 
+            else if (item.type === "bonus") {
+                timeLeft += 15;
+                speak("Ekstra zaman alındı");
+                boardItems.splice(i, 1);
+            } 
+            else if (item.type === "letter") {
+                if (item.correct) {
+                    collectedLetters += item.value;
+                    score += 50;
+                    document.getElementById("score").innerText = score;
+                    
+                    if (collectedLetters === currentTarget.word) {
+                        launchConfetti();
+                        score += 100;
+                        document.getElementById("score").innerText = score;
+                        
+                        let li = document.createElement("li");
+                        li.innerText = "✓ " + currentTarget.word;
+                        document.getElementById("solved-list").appendChild(li);
+                        
+                        fetchNextAIWord(); 
+                    } else {
+                        speak(item.value);
+                        generateBoardItems();
+                    }
+                } else {
+                    timeLeft -= 10;
+                    speak("Tuzak harf! Zaman kaybettin.");
+                    generateBoardItems();
+                    snake.pop(); 
+                }
+            }
+        }
+    }
+
+    if (!ateSomething) {
+        snake.pop();
+    }
+
+    // ⚡ İlerleyen seviyelerdeki hızlanma ivmesini de çok daha yumuşak yaptık
+    let newSpeed = Math.max(100, baseSpeed - Math.floor(score / 200) * 8);
+    if (newSpeed !== gameInterval._milli) {
+        clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, newSpeed);
+    }
+
+    draw();
+}
+
+function draw() {
+    ctx.fillStyle = "#05050a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
+    for (let i = 0; i < tileCount; i++) {
+        ctx.beginPath(); ctx.moveTo(i * gridSize, 0); ctx.lineTo(i * gridSize, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i * gridSize); ctx.lineTo(canvas.width, i * gridSize); ctx.stroke();
+    }
+
+    if (aiThinking) {
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("AI Kelime Üretiyor...", canvas.width / 2, canvas.height / 2);
+        return;
+    }
+
+    boardItems.forEach(item => {
+        if (item.type === "letter") {
+            ctx.fillStyle = "#ffcc00"; 
+            ctx.font = "bold 16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(item.value, item.x * gridSize + gridSize/2, item.y * gridSize + gridSize/2);
+        } else if (item.type === "mine") {
+            ctx.fillStyle = "#ff0055"; 
+            ctx.beginPath();
+            ctx.arc(item.x * gridSize + gridSize/2, item.y * gridSize + gridSize/2, 6, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (item.type === "bonus") {
+            ctx.fillStyle = "#00e5ff";
+            ctx.font = "14px sans-serif";
+            ctx.fillText("⏳", item.x * gridSize + gridSize/2, item.y * gridSize + gridSize/2);
+        }
+    });
+
+    snake.forEach((cell, idx) => {
+        if (idx === 0) {
+            ctx.fillStyle = "#00ff66"; 
+            ctx.fillRect(cell.x * gridSize + 1, cell.y * gridSize + 1, gridSize - 2, gridSize - 2);
+        } else {
+            ctx.fillStyle = "rgba(0, 255, 102, 0.4)";
+            ctx.fillRect(cell.x * gridSize + 2, cell.y * gridSize + 2, gridSize - 4, gridSize - 4);
+            
+            if (collectedLetters[idx - 1]) {
+                ctx.fillStyle = "#fff";
+                ctx.font = "10px sans-serif";
+                ctx.fillText(collectedLetters[idx - 1], cell.x * gridSize + gridSize/2, cell.y * gridSize + gridSize/2);
+            }
+        }
+    });
+}
+
+function updateTimer() {
+    if (!gameStarted || aiThinking) return;
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+    if (timeLeft <= 15) {
+        document.getElementById("timer-container").classList.add("danger");
     } else {
-        timeLeft -= 3; 
-        timerDisplay.innerText = timeLeft;
-        let randomJoke = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
-        
-        message.innerHTML = `${randomJoke}<br><b>İpucu: Kelime ${targetWord.length} harfli!</b><br><br><small>🟢 Yeşil: Doğru yer | 🟡 Sarı: Yanlış yer | ⚫ Gri: Kelimede yok</small> `;
-        speak(randomJoke);
-        
-        grid.classList.add("shake");
-        setTimeout(() => grid.classList.remove("shake"), 500);
+        document.getElementById("timer-container").classList.remove("danger");
+    }
+    if (timeLeft <= 0) {
+        gameOver("Süre bitti! Bomba patladı.");
     }
 }
 
-function gameOver() {
-    wordInput.disabled = true;
-    playExplosionSound();
-    
-    message.innerHTML = `BOOM! 💥 Havaya uçtun! <br> <b>Doğru Kelime: ${targetWord}</b> <br> Skorun: ${score} <br> <button onclick="initGame()">Yeniden Başla</button>`;
-    speak(`Güm! Bomba patladı, havaya uçtun! Doğru kelime, ${targetWord} idi.`);
+function gameOver(reason) {
+    clearInterval(gameInterval);
+    clearInterval(timerInterval);
+    speak("Güm! " + reason);
+    alert(`💥 OYUN BİTTİ!\n\nSebep: ${reason}\nToplam Skorun: ${score}`);
+    startGame();
 }
 
-createGrid();
-message.innerText = "Oyunu başlatmak için ekranda BOŞ BİR YERE TIKLA!";
-
-window.addEventListener("click", () => {
-    if (targetWord === "") {
-        initGame();
-    }
-}, { once: true });
+startGame();
